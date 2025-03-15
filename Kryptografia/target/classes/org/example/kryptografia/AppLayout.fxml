@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+
+
+<Pane maxHeight="1080" maxWidth="1920" minHeight="500" minWidth="650" prefHeight="540" prefWidth="670" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.kryptografia.AppController"
+style="-fx-background-color: #2C2F33">
+   <children>
+      <Button fx:id="encryptButton" layoutX="297.0" layoutY="237.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="79.0" text="Szyfruj"  style="-fx-background-color: #7289DA; -fx-font-weight: bold; -fx-text-fill: black;"/>
+      <Button fx:id="decryptButton" layoutX="297.0" layoutY="288.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="79.0" text="Deszyfruj"  style="-fx-background-color: #7289DA; -fx-font-weight: bold; -fx-text-fill: black;"/>
+      <TextArea fx:id="NormalTextArea" layoutX="30.0" layoutY="169.0" prefHeight="238.0" prefWidth="260.0" wrapText="true" />
+      <TextArea fx:id="EncryptTextArea" layoutX="384.0" layoutY="169.0" prefHeight="238.0" prefWidth="260.0" wrapText="true" />
+      <TextField fx:id="FirstKey" layoutX="30.0" layoutY="41.0" prefHeight="25.0" prefWidth="200.0" />
+      <TextField fx:id="SecondKey" layoutX="237.0" layoutY="41.0" prefHeight="25.0" prefWidth="200.0" />
+      <TextField fx:id="ThirdKey" layoutX="442.0" layoutY="41.0" prefHeight="25.0" prefWidth="200.0" />
+      <Label fx:id="Key1" layoutX="112.0" layoutY="24.0" text="1 klucz" style="-fx-text-fill: #E0C785 "/>
+      <Label fx:id="Key2" layoutX="315.0" layoutY="24.0" text="2 klucz" style="-fx-text-fill: #E0C785 "/>
+      <Label fx:id="Key3" layoutX="523.0" layoutY="24.0" text="3 klucz" style="-fx-text-fill: #E0C785 "/>
+      <Button fx:id="KeyGeneratorButton" layoutX="102.0" layoutY="86.0" mnemonicParsing="false" text="Generuj klucze"  style="-fx-background-color: #7289DA; -fx-font-weight: bold; -fx-text-fill: black;">
+         <font>
+            <Font size="10.0" />
+         </font>
+      </Button>
+      <Label fx:id="encryptTextLabel" layoutX="101.0" layoutY="152.0" text="Miejsce na tekst jawny" style="-fx-text-fill: #E0C785 "/>
+      <Label fx:id="decryptTextLabel" layoutX="429.0" layoutY="152.0" text="Miejsce na zaszyfrowany tekst" style="-fx-text-fill: #E0C785 "/>
+      <Button fx:id="LoadNormalText" layoutX="89.0" layoutY="440.0" mnemonicParsing="false" prefHeight="24.0" prefWidth="118.0" text="Wczytaj tekst jawny"  style="-fx-background-color: #7289DA; -fx-font-weight: bold; -fx-text-fill: black;">
+         <font>
+            <Font size="11.0" />
+         </font>
+      </Button>
+      <Button fx:id="SaveNormalText" layoutX="90.0" layoutY="477.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="118.0" text="Zapisz tekst jawny"  style="-fx-background-color: #7289DA; -fx-font-weight: bold; -fx-text-fill: black;">
+         <font>
+            <Font size="11.0" />
+         </font>
+      </Button>
+      <Button fx:id="LoadEncryptedText" layoutX="434.0" layoutY="440.0" mnemonicParsing="false" prefHeight="24.0" prefWidth="158.0" text="Wczytaj zaszyfrowany tekst"  style="-fx-background-color: #7289DA; -fx-font-weight: bold; -fx-text-fill: black;">
+         <font>
+            <Font size="11.0" />
+         </font>
+      </Button>
+      <Button fx:id="SaveEncryptedText" layoutX="434.0" layoutY="477.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="159.0" text="Zapisz zaszyfrowany tekst"  style="-fx-background-color: #7289DA; -fx-font-weight: bold; -fx-text-fill: black;">
+         <font>
+            <Font size="11.0" />
+         </font>
+      </Button>
+      <Label fx:id="SaveLoadLabel1" layoutX="100.0" layoutY="417.0" text="Zapis/Odczyt z pliku" style="-fx-text-fill: #E0C785 ">
+         <font>
+            <Font size="11.0" />
+         </font>
+      </Label>
+      <Label fx:id="SaveLoadLabel2" layoutX="464.0" layoutY="417.0" text="Zapis/Odczyt z pliku" style="-fx-text-fill: #E0C785 ">
+         <font>
+            <Font size="11.0" />
+         </font>
+      </Label>
+      <Button fx:id="LoadKeyButton" layoutX="315.0" layoutY="87.0" mnemonicParsing="false" text="Wczytaj "  style="-fx-background-color: #7289DA; -fx-font-weight: bold; -fx-text-fill: black;">
+         <font>
+            <Font size="10.0" />
+         </font>
+      </Button>
+      <Button fx:id="SaveKeyButton" layoutX="502.0" layoutY="87.0" mnemonicParsing="false" text="Zapisz"  style="-fx-background-color: #7289DA; -fx-font-weight: bold; -fx-text-fill: black;">
+         <font>
+            <Font size="10.0" />
+         </font>
+      </Button>
+      <Label fx:id="LoadKeyLabel" layoutX="208.0" layoutY="90.0" text="Wczytaj klucz z pliku:" style="-fx-text-fill: #E0C785 ">
+         <font>
+            <Font size="11.0" />
+         </font>
+      </Label>
+      <Label fx:id="SaveKeyLabel" layoutX="393.0" layoutY="90.0" text="Zapisz klucz do pliku:" style="-fx-text-fill: #E0C785 ">
+         <font>
+            <Font size="11.0" />
+         </font>
+      </Label>
+   </children>
+</Pane>
