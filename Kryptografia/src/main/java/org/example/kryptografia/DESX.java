@@ -1,9 +1,8 @@
 package org.example.kryptografia;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class DESX {
 
@@ -16,18 +15,33 @@ public class DESX {
     }
 
     // szyforwanie
-    public String encrypt(String plainText) throws Exception {
+    public String encrypt(String plainText) {
         byte[] plainTextBytes = checkBytes(plainText.getBytes(StandardCharsets.UTF_8));
 
-        byte[] step1 = keyXor(plainTextBytes, K1); // pierwszy krok - szyfrowanie przy uzyciu pierwszego klucza i funkcji XOR
+        StringBuilder encryptedText = new StringBuilder();
 
-        Cipher cipher = Cipher.getInstance("DES/ECB/NoPadding");
-        cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(K2, "DES"));
-        byte[] step2 = cipher.doFinal(step1); // drugie szyfrowanie przy uzyciu drugiego klucza wykorzystjac algorytm DES
+        for (int i = 0; i < plainTextBytes.length; i += 8) {
+            byte[] block = Arrays.copyOfRange(plainTextBytes, i, i + 8);
 
-        byte[] step3 = keyXor(step2, K3); // ostatnie szyfrowanie przy pomocy 3 klucza
+            byte[] step1 = keyXor(block, K1); // pierwszy krok - szyfrowanie przy uzyciu pierwszego klucza i funkcji XOR
 
-        return bytesToHexEncrypt(step3);
+            byte[] step2 = desEncrypt(step1, K2); // drugie szyfrowanie przy uzyciu drugiego klucza wykorzystjac algorytm DES
+
+            byte[] step3 = keyXor(step2, K3);// ostatnie szyfrowanie przy pomocy 3 klucza
+
+            encryptedText.append(bytesToHexEncrypt(step3));
+        }
+        return encryptedText.toString();
+    }
+
+    public byte[] desEncrypt(byte[] data, byte[] key) {
+        DES des = new DES();
+        des.setMsg(data);
+        des.setKey(key);
+        des.run(1);
+        byte[] result = des.getMsg();
+        return result;
+
     }
 
     // funkcja zamieniajaca bity na postac HEX a potem string by poniez moc wyswietlic zaszyfrowany tekst
@@ -95,20 +109,31 @@ public class DESX {
 
 
     // deszyfrowanie - analogicznie do szyfrowania
-    public String decrypt(String cipherText) throws Exception {
+    public String decrypt(String cipherText) {
         byte[] cipherTextBytes = hexToBytesDecrypt(cipherText);
 
-        byte[] step1 = keyXor(cipherTextBytes, K3);
+        StringBuilder decryptedText = new StringBuilder();
 
-        Cipher cipher = Cipher.getInstance("DES/ECB/NoPadding");
-        cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(K2, "DES"));
-        byte[] step2 = cipher.doFinal(step1);
+        for (int i = 0; i < cipherTextBytes.length; i += 8) {
+            byte[] block = Arrays.copyOfRange(cipherTextBytes, i, i + 8);
 
-        byte[] step3 = keyXor(step2, K1);
+            byte[] step1 = keyXor(block, K3);
+            byte[] step2 = desDescrypt(step1, K2);
+            byte[] step3 = keyXor(step2, K1);
 
-        return new String(step3, StandardCharsets.UTF_8).trim(); // usuwanie dodanych spacje
+            decryptedText.append(new String(step3, StandardCharsets.UTF_8));
+
+        }
+        return decryptedText.toString().trim(); // usuwanie dodanych spacje
     }
 
-
+    public byte[] desDescrypt(byte[] data, byte[] key) {
+        DES des = new DES();
+        des.setKey(key);
+        des.setMsg(data);
+        des.run(2);
+        byte[] result = des.getMsg();
+        return result;
+    }
 
 }

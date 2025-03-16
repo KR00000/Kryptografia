@@ -1,3 +1,5 @@
+org\example\kryptografia\DES.class
 org\example\kryptografia\AppController.class
-org\example\kryptografia\HelloApplication.class
 module-info.class
+org\example\kryptografia\HelloApplication.class
+org\example\kryptografia\Permutations.class
