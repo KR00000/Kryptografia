@@ -1,5 +1,6 @@
 package org.example.kryptografia;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -7,57 +8,130 @@ import java.util.Arrays;
 public class DESX {
 
     private byte[] K1, K2, K3;
+    private byte[] encodedBytes; // Zmienna do przechowywania zaszyfrowanych danych
+    private byte[] decodedBytes; // Zmienna do przechowywania odszyfrowanych danych
 
     public DESX(String key1, String key2, String key3) {
         this.K1 = hexToByte(key1);
         this.K2 = hexToByte(key2);
         this.K3 = hexToByte(key3);
+        this.encodedBytes = new byte[0]; // Inicjalizacja pustych tablic
+        this.decodedBytes = new byte[0];
     }
 
-    // szyforwanie
-    public String encrypt(String plainText) {
-        byte[] plainTextBytes = checkBytes(plainText.getBytes(StandardCharsets.UTF_8));
+    // Szyfrowanie - teraz zapisuje wynik do encodedBytes
+    public byte[] encrypt(byte[] plainTextBytes) {
+        plainTextBytes = checkBytes(plainTextBytes);
+        printHexDebug(plainTextBytes, "Plaintext (after padding)");
 
-        StringBuilder encryptedText = new StringBuilder();
+        ByteArrayOutputStream encryptedText = new ByteArrayOutputStream();
 
         for (int i = 0; i < plainTextBytes.length; i += 8) {
             byte[] block = Arrays.copyOfRange(plainTextBytes, i, i + 8);
 
             byte[] step1 = keyXor(block, K1); // pierwszy krok - szyfrowanie przy uzyciu pierwszego klucza i funkcji XOR
 
-            byte[] step2 = desEncrypt(step1, K2); // drugie szyfrowanie przy uzyciu drugiego klucza wykorzystjac algorytm DES
+            byte[] step2 = desEncrypt(step1, K2); // drugie szyfrowanie przy uzyciu drugiego klucza
 
-            byte[] step3 = keyXor(step2, K3);// ostatnie szyfrowanie przy pomocy 3 klucza
+            byte[] step3 = keyXor(step2, K3); // ostatnie szyfrowanie przy pomocy 3 klucza
 
-            encryptedText.append(bytesToHexEncrypt(step3));
+            encryptedText.write(step3, 0, step3.length);
         }
-        return encryptedText.toString();
+
+        this.encodedBytes = encryptedText.toByteArray(); // Zapisanie zaszyfrowanych danych do encodedBytes
+        printHexDebug(this.encodedBytes, "Encrypted data");
+        return this.encodedBytes;
     }
 
-    public byte[] desEncrypt(byte[] data, byte[] key) {
+    // Deszyfrowanie - zapisuje wynik do decodedBytes
+    public byte[] decrypt(byte[] cipherTextBytes) {
+        printHexDebug(cipherTextBytes, "Ciphertext (before decryption)");
+
+        ByteArrayOutputStream decryptedText = new ByteArrayOutputStream();
+
+        for (int i = 0; i < cipherTextBytes.length; i += 8) {
+            byte[] block = Arrays.copyOfRange(cipherTextBytes, i, i + 8);
+
+            byte[] step1 = keyXor(block, K3);
+            byte[] step2 = desDescrypt(step1, K2);
+            byte[] step3 = keyXor(step2, K1);
+
+            decryptedText.write(step3, 0, step3.length);
+        }
+
+        this.decodedBytes = removePadding(decryptedText.toByteArray()); // Zapisanie odszyfrowanych danych do decodedBytes
+        printHexDebug(this.decodedBytes, "Decrypted data");
+        return this.decodedBytes;
+    }
+
+    // Getter do encodedBytes
+    public byte[] getEncodedBytes() {
+        return encodedBytes;
+    }
+
+    // Getter do decodedBytes
+    public byte[] getDecodedBytes() {
+        return decodedBytes;
+    }
+
+    // Funkcje pomocnicze
+    private byte[] desEncrypt(byte[] data, byte[] key) {
         DES des = new DES();
         des.setMsg(data);
         des.setKey(key);
         des.run(1);
-        byte[] result = des.getMsg();
-        return result;
-
+        return des.getMsg();
     }
 
-    // funkcja zamieniajaca bity na postac HEX a potem string by poniez moc wyswietlic zaszyfrowany tekst
-    private String bytesToHexEncrypt(byte[] bytes) {
-        StringBuilder hexString = new StringBuilder();
-        for (byte b : bytes) {
-            hexString.append(String.format("%02X", b));
+    private byte[] desDescrypt(byte[] data, byte[] key) {
+        DES des = new DES();
+        des.setKey(key);
+        des.setMsg(data);
+        des.run(2);
+        return des.getMsg();
+    }
+
+    private static byte[] keyXor(byte[] message, byte[] key) {
+        byte[] result = new byte[message.length];
+        for (int i = 0; i < message.length; i++) {
+            result[i] = (byte) ((message[i] ^ key[i % key.length]));
         }
-        return hexString.toString();
+        return result;
     }
 
-    // zamiana kluczy z HEX na bitowe
+    private static byte[] checkBytes(byte[] message) {
+        int length = message.length;
+        if (length % 8 == 0) {
+            return message; // Jeśli długość jest już wielokrotnością 8, zwróć dane
+        }
+
+        int newLength = ((length / 8) + 1) * 8;
+        byte[] result = new byte[newLength];
+        System.arraycopy(message, 0, result, 0, length);
+        Arrays.fill(result, length, newLength, (byte) 0x00);
+        return result;
+    }
+
+    private static byte[] removePadding(byte[] data) {
+        int lastIndex = data.length;
+        while (lastIndex > 0 && data[lastIndex - 1] == 0x00) {
+            lastIndex--;
+        }
+        return Arrays.copyOf(data, lastIndex);
+    }
+
+    private void printHexDebug(byte[] data, String label) {
+        System.out.print(label + " : ");
+        for (int i = 0; i < Math.min(16, data.length); i++) {
+            System.out.printf("%02X ", data[i]);
+        }
+        System.out.println();
+    }
+
     private static byte[] hexToByte(String hex) {
         byte[] bytes = new BigInteger(hex, 16).toByteArray();
         if (bytes.length == 8) {
-            return bytes; // jak mamy 8 to zwracamy
+            return bytes;
         }
 
         byte[] key = new byte[8];
@@ -69,71 +143,45 @@ public class DESX {
         return key;
     }
 
-    private static byte[] keyXor(byte[] message, byte[] key) {
-        byte[] result = new byte[message.length];
-        for (int i = 0; i < message.length; i++) {
-            result[i] = (byte) ((message[i] ^ key[i % key.length])); // xorowanie wiadomosci i klucza
+    public static String bytesToHexString(byte[] src) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (src == null || src.length <= 0) {
+            return "";
         }
-        return result;
+        for (int i = 0; i < src.length; i++) {
+            int v = src[i] & 0xFF;
+            String hv = Integer.toHexString(v);
+            if (hv.length() < 2) {
+                stringBuilder.append(0);
+            }
+            stringBuilder.append(hv);
+        }
+        return stringBuilder.toString();
     }
 
-    // funckja dzielaca tekst na bloki i dopelniajaca je zerami
-    private static byte[] checkBytes(byte[] message) {
-        int length = message.length;
-        if(length % 8 == 0 ) {
-            return message; // zwrocenie tekstu jesli nie trzeba go dopelniac
+    // funkcja zamieniajaca bity na postac HEX a potem string by poniez moc wyswietlic zaszyfrowany tekst
+    String bytesToHexEncrypt(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : bytes) {
+            hexString.append(String.format("%02X", b));
         }
-        // dopelnienie tekstu zerami
-        int newLength = ((length / 8) + 1)*8;
-
-        byte[] result = new byte[newLength];
-        System.arraycopy(message, 0, result, 0, length);
-
-        for (int i = length; i < newLength; i++) {
-            result[i] = 0x20; // wypelniamy spacjami by potem latwiej mozna bylo je usunac
-        }
-
-        return result;
+        return hexString.toString();
     }
 
     // zmieniamy hex na bity do deszyfrowania
-    private byte[] hexToBytesDecrypt(String hex){
+    byte[] hexToBytesDecrypt(String hex){
         int tmp = hex.length();
         byte[] data = new byte[tmp/2];
         for(int i = 0; i < tmp; i+=2){
             data[i/2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
-            + Character.digit(hex.charAt(i+1), 16));
+                    + Character.digit(hex.charAt(i+1), 16));
         }
         return data;
     }
 
-
-    // deszyfrowanie - analogicznie do szyfrowania
-    public String decrypt(String cipherText) {
-        byte[] cipherTextBytes = hexToBytesDecrypt(cipherText);
-
-        StringBuilder decryptedText = new StringBuilder();
-
-        for (int i = 0; i < cipherTextBytes.length; i += 8) {
-            byte[] block = Arrays.copyOfRange(cipherTextBytes, i, i + 8);
-
-            byte[] step1 = keyXor(block, K3);
-            byte[] step2 = desDescrypt(step1, K2);
-            byte[] step3 = keyXor(step2, K1);
-
-            decryptedText.append(new String(step3, StandardCharsets.UTF_8));
-
-        }
-        return decryptedText.toString().trim(); // usuwanie dodanych spacje
-    }
-
-    public byte[] desDescrypt(byte[] data, byte[] key) {
-        DES des = new DES();
-        des.setKey(key);
-        des.setMsg(data);
-        des.run(2);
-        byte[] result = des.getMsg();
-        return result;
+    //zamiana tablicy bajtów na Stringa
+    public static String bytesToString(byte[] src) {
+        return new String(src);
     }
 
 }

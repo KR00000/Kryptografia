@@ -34,38 +34,38 @@ public class DES {
 
     public void run(int mode) {
 
-        msg = bitShuffle(msg, v.startPermutation); // Permutacja początkowa
-        divideMsg();// Podział wiadomości na dwie części
+        msg = bitShuffle(msg, v.startPermutation); // Permutacja poczatkowa
+        divideMsg();// Podzial wiadomości na dwie cześci
         proceedIterations(mode);
     }
 
     private void proceedIterations(int mode) {
         int iteration = subKeys.length;
-        for (int i = 0; i < iteration; i++) {
+        for (int i = 0; i < iteration; i++) { // petla powtarza sie 16 razy dla kazdego klucza
             byte[] oldRightSide = rightSide;
-            rightSide = bitShuffle(rightSide, v.extendedPermutation);
-            rightSide = byteXOR(rightSide, mode == 1 ? subKeys[i] : subKeys[iteration - i - 1]);
-            rightSide = doSBox(rightSide);
-            rightSide = bitShuffle(rightSide, v.pBox);
-            rightSide = byteXOR(leftSide, rightSide);
+            rightSide = bitShuffle(rightSide, v.extendedPermutation); // rozszerzamy prawa strone z 32 na 48 bitow
+            rightSide = byteXOR(rightSide, mode == 1 ? subKeys[i] : subKeys[iteration - i - 1]); // XOR-owanie z podkluczem
+            rightSide = doSBox(rightSide); // zmiejszenie z 48 do 32 bitow za pomoca s-boxow
+            rightSide = bitShuffle(rightSide, v.pBox); // premutacja P
+            rightSide = byteXOR(leftSide, rightSide); // XOR-owanie z lewa strona
             leftSide = oldRightSide;
         }
         msg = byteConcat(rightSide, v.startPermutation.length / 2, leftSide, v.startPermutation.length / 2);
-        msg = bitShuffle(msg, v.endPermutation);
+        msg = bitShuffle(msg, v.endPermutation); // ostatnia permutacja
     }
 
     private byte[] doSBox(byte[] data) {
-        data = byteSplit86(data);
+        data = byteSplit86(data); // dzielimy dane na fragmenty 6 bitowe
         byte[] output = new byte[data.length / 2];
         for (int i = 0, firstSBoxValue = 0; i < data.length; i++) {
             byte sixBitsFragment = data[i];
             int rowNumb = 2 * (sixBitsFragment >> 7 & 0x0001) + (sixBitsFragment >> 2 & 0x0001);
             int columnNumb = sixBitsFragment >> 3 & 0x000F;
-            int secondSBoxValue = v.sBox[64 * i + 16 * rowNumb + columnNumb];
+            int secondSBoxValue = v.sBox[64 * i + 16 * rowNumb + columnNumb]; // zamiana z 6 bitow na 4 bity
             if (i % 2 == 0)
                 firstSBoxValue = secondSBoxValue;
             else
-                output[i / 2] = createByteFromSBoxValues(firstSBoxValue, secondSBoxValue);
+                output[i / 2] = createByteFromSBoxValues(firstSBoxValue, secondSBoxValue); // laczymy obie strony w jedna wiadomosc
         }
         return output;
     }
@@ -82,16 +82,16 @@ public class DES {
     }
 
     private void generateSubKeys(){
-        byte[] keyPC1 = bitShuffle(key,v.PC1);
-        byte[] c = byteSplit(keyPC1, 0, 28);
+        byte[] keyPC1 = bitShuffle(key,v.PC1); // redukcja klucza za pomoca permutcji do postaci 56 bitowej
+        byte[] c = byteSplit(keyPC1, 0, 28); // dzielimy klucz na pol
         byte[] d = byteSplit(keyPC1, 28, 28);
         byte[] cd;
         subKeys = new byte[v.shifts.length][];
-        for (int i = 0; i < v.shifts.length; i++) {
+        for (int i = 0; i < v.shifts.length; i++) { // przesuwamy bity w lewa o 1 lub 2
             c = leftShift(c, v.shifts[i]);
             d = leftShift(d, v.shifts[i]);
             cd = byteConcat(c, 28, d, 28);
-            subKeys[i] = bitShuffle(cd, v.PC2);
+            subKeys[i] = bitShuffle(cd, v.PC2); // dostajemy klucz o dlugosci 48 bitow
         }
     }
 
@@ -106,7 +106,7 @@ public class DES {
         return out;
     }
 
-    private byte[] bitShuffle(byte[] input, int[] permTable) {
+    private byte[] bitShuffle(byte[] input, int[] permTable) { // umieszcza bity zgodnie z tablica permutacji
         byte[] output = prepareOutput(permTable.length);
         boolean bit;
         for (int i = 0; i < permTable.length; i++) {
@@ -123,16 +123,16 @@ public class DES {
     }
 
     private void bitSet(byte[] data, int index, boolean bit) {
-        int Byte = index / 8;
-        int Bit = index % 8;
+        int Byte = index / 8; // okreslenie gdzie znajduje sie bit
+        int Bit = index % 8; //okreslenie bitu w bajcie
         if(bit) {
-            data[Byte] |= 0x80 >> Bit;
+            data[Byte] |= 0x80 >> Bit; // ustawiamy bit na 1 (operacja or)
         } else {
-            data[Byte] &= ~(0x80 >> Bit);
+            data[Byte] &= ~(0x80 >> Bit); // ustawiamy bit na 0 (operacja and)
         }
     }
 
-    private byte[] prepareOutput(int length) {
+    private byte[] prepareOutput(int length) { // tworzymy tablice bajtow o odpowiedniej dlugosci
         int bytesNumb = ((length - 1) / 8) + 1;
         return new byte[bytesNumb];
     }
@@ -145,20 +145,20 @@ public class DES {
         return out;
     }
 
-    private byte[] byteSplit86(byte[] input) {
+    private byte[] byteSplit86(byte[] input) { // rodzielamy 48 bitowe fragmenry na 6 bitowe
         int bytesNumber = 8;
         boolean val;
         byte[] output = new byte[bytesNumber];
         for (int i = 0; i < bytesNumber; i++) {
             for (int j = 0; j < 6; j++) {
-                val = bitCheck(input, (6 * i) + j);
-                bitSet(output, (8 * i) + j, val);
+                val = bitCheck(input, (6 * i) + j); // sprawdzamy czy bit jest 1 lub 0
+                bitSet(output, (8 * i) + j, val); // umieszcza bit w 8 bitowym bloku
             }
         }
         return output;
     }
 
-    byte[] byteSplit(byte[] input, int index, int length) {
+    byte[] byteSplit(byte[] input, int index, int length) { // dzieli tablice bajtow na czesci
         boolean bit;
         byte[] output = prepareOutput(length);
         for (int i = 0; i < length; i++) {
@@ -168,7 +168,7 @@ public class DES {
         return output;
     }
 
-    byte[] byteConcat(byte[] a, int aLength, byte[] b, int bLength) {
+    byte[] byteConcat(byte[] a, int aLength, byte[] b, int bLength) { // laczymy dwie tablivy bajtow w jedna
         boolean bit;
         byte[] output = prepareOutput(aLength + bLength);
         int i = 0;
