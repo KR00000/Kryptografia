@@ -74,7 +74,7 @@ public class AppController {
         public void initialize() {
 
         KeyGeneratorButton.setOnAction(event -> {
-            plecak.generateKey(8);
+            plecak.generateKey(512);
 
             FirstKey.setText(Arrays.toString(plecak.getPublicKey())
                     .replace("[", "")
